@@ -125,9 +125,4 @@ It not only predicts future demand but also provides **practical solutions** to 
 
 ---
 
-## 👨‍💻 Author
 
-**Roshan Shaikh**
-GitHub: https://github.com/RoshanS-Dev
-
----
