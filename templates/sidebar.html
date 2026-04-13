@@ -1,0 +1,62 @@
+<aside class="sidebar">
+    <div class="brand-block">
+        <div class="brand-icon">🏥</div>
+        <div>
+            <h2>Hospital AI</h2>
+            <p>Resource Optimizer</p>
+        </div>
+    </div>
+
+    <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+        <label for="csvFile" class="custom-file-upload">
+            <input type="file" id="csvFile" name="file" accept=".csv" required>
+            <span id="fileText">Choose Hospital CSV</span>
+        </label>
+        <button type="submit" class="upload-btn">Upload Dataset</button>
+    </form>
+
+    <a href="/reset" class="reset-btn">Reset Dashboard</a>
+
+    <div class="sidebar-card">
+        <h3>Recommended Fields</h3>
+        <ul>
+            <li>Date</li>
+            <li>Day_of_Week</li>
+            <li>Patient_Load</li>
+            <li>Emergency_Admissions</li>
+            <li>Severity_Score</li>
+            <li>Available_Beds</li>
+            <li>Staff_Count</li>
+            <li>ICU_Beds</li>
+            <li>Bed_Occupancy</li>
+            <li>Average_Length_of_Stay</li>
+            <li>Season</li>
+            <li>Weather_Condition</li>
+            <li>High_Load_Flag</li>
+        </ul>
+    </div>
+
+    <div class="sidebar-card">
+        <h3>Dashboard Sections</h3>
+        <div class="module-buttons">
+            <a href="#manual-section" class="module-btn">Today's Input</a>
+            <a href="#eda-section" class="module-btn">EDA</a>
+            <a href="#preprocessing-section" class="module-btn">Preprocessing</a>
+            <a href="#regression-section" class="module-btn">Prediction Results</a>
+            <a href="#modeltype-section" class="module-btn">Model Type</a>
+            <a href="#resource-section" class="module-btn">Resource Suggestion</a>
+        </div>
+    </div>
+
+    <div class="sidebar-card">
+        <h3>How It Works</h3>
+        <div class="sidebar-flow">
+            <div class="flow-item">Upload hospital CSV</div>
+            <div class="flow-item">Analyze trends and patterns</div>
+            <div class="flow-item">Clean and preprocess data</div>
+            <div class="flow-item">Train ML models</div>
+            <div class="flow-item">Predict tomorrow's demand</div>
+            <div class="flow-item">Show resource recommendations</div>
+        </div>
+    </div>
+</aside>

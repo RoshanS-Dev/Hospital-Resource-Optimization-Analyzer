@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Resource Optimizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-layout">
+        {% include 'sidebar.html' %}
+
+        <main class="main-content {% if not file_uploaded %}center-home{% endif %}">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-wrapper">
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% if not file_uploaded %}
+                <section class="hero-card">
+                    <div class="hero-badge">AI + ML FOR HOSPITAL OPERATIONS</div>
+                    <h1>Hospital Resource Optimizer</h1>
+                    <p>
+                        Upload historical hospital data and predict patient load, bed occupancy,
+                        average length of stay, high load alerts, and smart resource recommendations.
+                    </p>
+
+                    <div class="hero-grid">
+                        <div class="hero-mini-card">
+                            <h3>Predict</h3>
+                            <p>Patient load, beds, LOS, high load risk</p>
+                        </div>
+                        <div class="hero-mini-card">
+                            <h3>Analyze</h3>
+                            <p>EDA charts, correlation, monthly trends</p>
+                        </div>
+                        <div class="hero-mini-card">
+                            <h3>Recommend</h3>
+                            <p>Beds, staff, ICU, shifts, inventory</p>
+                        </div>
+                    </div>
+                </section>
+            {% else %}
+                <section class="page-header glass-card">
+                    <div>
+                        <p class="section-label">ACTIVE DASHBOARD</p>
+                        <h1>Hospital Resource Optimization Analysis</h1>
+                        <p class="subtext">Current dataset: <strong>{{ filename }}</strong></p>
+                    </div>
+                    <div class="status-chip">Live Analysis Ready</div>
+                </section>
+
+                <section class="glass-card overview-card">
+                    <h2>Workflow Summary</h2>
+                    <div class="overview-grid">
+                        <div class="overview-item">
+                            <span>1</span>
+                            <h3>Upload Data</h3>
+                            <p>Load hospital records from CSV or use today's manual input.</p>
+                        </div>
+                        <div class="overview-item">
+                            <span>2</span>
+                            <h3>EDA</h3>
+                            <p>Study trends, season patterns, and severity relationships.</p>
+                        </div>
+                        <div class="overview-item">
+                            <span>3</span>
+                            <h3>Preprocessing</h3>
+                            <p>Handle missing data, encode categories, and build derived features.</p>
+                        </div>
+                        <div class="overview-item">
+                            <span>4</span>
+                            <h3>Prediction</h3>
+                            <p>Run regression and classification models for tomorrow's needs.</p>
+                        </div>
+                        <div class="overview-item">
+                            <span>5</span>
+                            <h3>Action</h3>
+                            <p>Get bed, staff, ICU, shift, and inventory recommendations.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-card" id="manual-section">
+                    <h2>Enter Today’s Data for Prediction</h2>
+                    <form action="/predict_today" method="post" class="manual-form-grid">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" name="date" value="{{ form_values.get('date', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Day of Week</label>
+                            <select name="day_of_week">
+                                <option value="">Select</option>
+                                {% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                                    <option value="{{ day }}" {% if form_values.get('day_of_week') == day %}selected{% endif %}>{{ day }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Emergency Admissions</label>
+                            <input type="number" step="0.01" name="emergency_admissions" value="{{ form_values.get('emergency_admissions', '') }}" placeholder="e.g. 34">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Severity Score</label>
+                            <input type="number" step="0.01" name="severity_score" value="{{ form_values.get('severity_score', '') }}" placeholder="e.g. 7.8">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Available Beds</label>
+                            <input type="number" step="0.01" name="available_beds" value="{{ form_values.get('available_beds', '') }}" placeholder="e.g. 150">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Staff Count</label>
+                            <input type="number" step="0.01" name="staff_count" value="{{ form_values.get('staff_count', '') }}" placeholder="e.g. 62">
+                        </div>
+
+                        <div class="form-group">
+                            <label>ICU Beds</label>
+                            <input type="number" step="0.01" name="icu_beds" value="{{ form_values.get('icu_beds', '') }}" placeholder="e.g. 24">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Expected Patient Load</label>
+                            <input type="number" step="0.01" name="patient_load" value="{{ form_values.get('patient_load', '') }}" placeholder="optional">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Season</label>
+                            <select name="season">
+                                <option value="">Select</option>
+                                {% for season in ['Winter','Summer','Monsoon','Autumn'] %}
+                                    <option value="{{ season }}" {% if form_values.get('season') == season %}selected{% endif %}>{{ season }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Weather Condition</label>
+                            <select name="weather_condition">
+                                <option value="">Select</option>
+                                {% for weather in ['Normal','Sunny','Rainy','Cloudy','Stormy'] %}
+                                    <option value="{{ weather }}" {% if form_values.get('weather_condition') == weather %}selected{% endif %}>{{ weather }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="primary-btn">Generate Prediction</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="glass-card" id="eda-section">
+                    <div class="section-head">
+                        <div>
+                            <p class="section-label">STEP 2</p>
+                            <h2>Exploratory Data Analysis</h2>
+                        </div>
+                    </div>
+
+                    <div class="info-list">
+                        {% for item in eda_summary %}
+                            <div class="info-item">{{ item }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="chart-grid">
+                        {% if plots.patient_trend %}
+                        <div class="chart-card">
+                            <h3>Patient Load Trend</h3>
+                            <img src="{{ url_for('static', filename='plots/' + plots.patient_trend) }}" alt="Patient Trend">
+                        </div>
+                        {% endif %}
+
+                        {% if plots.bed_month %}
+                        <div class="chart-card">
+                            <h3>Average Bed Occupancy</h3>
+                            <img src="{{ url_for('static', filename='plots/' + plots.bed_month) }}" alt="Bed Occupancy">
+                        </div>
+                        {% endif %}
+
+                        {% if plots.season_pattern %}
+                        <div class="chart-card">
+                            <h3>Season-wise Pattern</h3>
+                            <img src="{{ url_for('static', filename='plots/' + plots.season_pattern) }}" alt="Season Pattern">
+                        </div>
+                        {% endif %}
+
+                        {% if plots.severity_scatter %}
+                        <div class="chart-card">
+                            <h3>Severity vs Patient Load</h3>
+                            <img src="{{ url_for('static', filename='plots/' + plots.severity_scatter) }}" alt="Severity Scatter">
+                        </div>
+                        {% endif %}
+
+                        {% if plots.heatmap %}
+                        <div class="chart-card full-width">
+                            <h3>Correlation Heatmap</h3>
+                            <img src="{{ url_for('static', filename='plots/' + plots.heatmap) }}" alt="Heatmap">
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="glass-card" id="preprocessing-section">
+                    <p class="section-label">STEP 3</p>
+                    <h2>Data Preprocessing</h2>
+
+                    <div class="info-list">
+                        {% for step in preprocessing_steps %}
+                            <div class="info-item">{{ step }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mini-summary-grid">
+                        <div class="mini-summary-card">
+                            <span>Detected Patient Column</span>
+                            <strong>{{ detected_targets.patient_col }}</strong>
+                        </div>
+                        <div class="mini-summary-card">
+                            <span>Detected Bed Column</span>
+                            <strong>{{ detected_targets.bed_col }}</strong>
+                        </div>
+                        <div class="mini-summary-card">
+                            <span>Detected LOS Column</span>
+                            <strong>{{ detected_targets.los_col }}</strong>
+                        </div>
+                        <div class="mini-summary-card">
+                            <span>Alert Target</span>
+                            <strong>{{ detected_targets.high_load_col }}</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-card" id="regression-section">
+                    <p class="section-label">STEP 4</p>
+                    <h2>Model Predictions</h2>
+
+                    <div class="metric-grid">
+                        <div class="metric-card primary">
+                            <span>Predicted Patient Load</span>
+                            <strong>{{ predictions.patient_load_prediction }}</strong>
+                        </div>
+                        <div class="metric-card primary">
+                            <span>Predicted Bed Occupancy</span>
+                            <strong>{{ predictions.bed_occupancy_prediction }}</strong>
+                        </div>
+                        <div class="metric-card primary">
+                            <span>Predicted Avg. Length of Stay</span>
+                            <strong>{{ predictions.average_los_prediction }}</strong>
+                        </div>
+                        <div class="metric-card primary">
+                            <span>Predicted Inventory Demand</span>
+                            <strong>{{ predictions.inventory_prediction }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid section-top-gap">
+                        <div class="metric-card alert-card">
+                            <span>High Load Alert</span>
+                            <strong>{{ predictions.high_load_flag }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>High Load Probability</span>
+                            <strong>{{ predictions.high_load_probability }}%</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Classification Accuracy</span>
+                            <strong>
+                                {% if predictions.logistic_metrics %}
+                                    {{ predictions.logistic_metrics.accuracy }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="metrics-table-grid">
+                        <div class="metrics-box">
+                            <h3>Patient Load Model</h3>
+                            {% if predictions.patient_metrics %}
+                                <p>R² Score: <strong>{{ predictions.patient_metrics.r2 }}</strong></p>
+                                <p>MSE: <strong>{{ predictions.patient_metrics.mse }}</strong></p>
+                            {% else %}
+                                <p>Not enough data to train.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="metrics-box">
+                            <h3>Bed Occupancy Model</h3>
+                            {% if predictions.bed_metrics %}
+                                <p>R² Score: <strong>{{ predictions.bed_metrics.r2 }}</strong></p>
+                                <p>MSE: <strong>{{ predictions.bed_metrics.mse }}</strong></p>
+                            {% else %}
+                                <p>Not enough data to train.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="metrics-box">
+                            <h3>Length of Stay Model</h3>
+                            {% if predictions.los_metrics %}
+                                <p>R² Score: <strong>{{ predictions.los_metrics.r2 }}</strong></p>
+                                <p>MSE: <strong>{{ predictions.los_metrics.mse }}</strong></p>
+                            {% else %}
+                                <p>Not enough data to train.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="metrics-box">
+                            <h3>Inventory Model</h3>
+                            {% if predictions.inventory_metrics %}
+                                <p>R² Score: <strong>{{ predictions.inventory_metrics.r2 }}</strong></p>
+                                <p>MSE: <strong>{{ predictions.inventory_metrics.mse }}</strong></p>
+                            {% else %}
+                                <p>Not enough data to train.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-card" id="modeltype-section">
+                    <p class="section-label">MODEL INFORMATION</p>
+                    <h2>Model Types Used</h2>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model Type</th>
+                                    <th>Target</th>
+                                    <th>Purpose</th>
+                                    <th>Output</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in model_table %}
+                                <tr>
+                                    <td>{{ row.model_type }}</td>
+                                    <td>{{ row.target }}</td>
+                                    <td>{{ row.purpose }}</td>
+                                    <td>{{ row.output }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="glass-card" id="resource-section">
+                    <p class="section-label">STEP 5</p>
+                    <h2>Automatic Resource Suggestions</h2>
+
+                    <div class="metric-grid">
+                        <div class="metric-card highlight">
+                            <span>Available Beds</span>
+                            <strong>{{ resource_recommendation.available_beds }}</strong>
+                        </div>
+                        <div class="metric-card highlight">
+                            <span>Beds to Prepare</span>
+                            <strong>{{ resource_recommendation.beds_to_prepare }}</strong>
+                        </div>
+                        <div class="metric-card highlight">
+                            <span>Predicted Bed Occupancy</span>
+                            <strong>{{ resource_recommendation.predicted_bed_occupancy }}</strong>
+                        </div>
+                        <div class="metric-card highlight">
+                            <span>Available Staff</span>
+                            <strong>{{ resource_recommendation.available_staff }}</strong>
+                        </div>
+                        <div class="metric-card highlight">
+                            <span>Recommended Staff</span>
+                            <strong>{{ resource_recommendation.recommended_staff }}</strong>
+                        </div>
+                        <div class="metric-card highlight">
+                            <span>Extra Shifts</span>
+                            <strong>{{ resource_recommendation.extra_shifts }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid section-top-gap">
+                        <div class="metric-card">
+                            <span>Nurses Needed</span>
+                            <strong>{{ resource_recommendation.nurses_needed }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Doctors Needed</span>
+                            <strong>{{ resource_recommendation.doctors_needed }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Available ICU</span>
+                            <strong>{{ resource_recommendation.available_icu }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Recommended ICU</span>
+                            <strong>{{ resource_recommendation.recommended_icu }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Inventory Level</span>
+                            <strong>{{ resource_recommendation.inventory_level }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid section-top-gap">
+                        <div class="metric-card">
+                            <span>Medicines Required</span>
+                            <strong>{{ resource_recommendation.medicines_required }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>Surgical Items Required</span>
+                            <strong>{{ resource_recommendation.surgical_items_required }}</strong>
+                        </div>
+                        <div class="metric-card">
+                            <span>PPE Required</span>
+                            <strong>{{ resource_recommendation.ppe_required }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="alert-list">
+                        {% for item in resource_recommendation.suggestions %}
+                            <div class="alert-item">{{ item }}</div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="glass-card">
+                    <p class="section-label">DATA PREVIEW</p>
+                    <h2>Dataset Preview</h2>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for col in columns %}
+                                        <th>{{ col }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in table_preview %}
+                                    <tr>
+                                        {% for col in columns %}
+                                            <td>{{ row[col] }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        const csvFile = document.getElementById("csvFile");
+        const fileText = document.getElementById("fileText");
+
+        if (csvFile && fileText) {
+            csvFile.addEventListener("change", function () {
+                if (this.files.length > 0) {
+                    fileText.textContent = this.files[0].name;
+                } else {
+                    fileText.textContent = "Choose Hospital CSV";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
